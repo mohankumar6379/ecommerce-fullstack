@@ -1,36 +1,32 @@
 using System;
-using Infrastructure.Data;
 using Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Core.Interfaces;
 
 namespace API.Controllers;
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly StoreContext dbContext;
+    private readonly IProductRepository repo;
 
-    public ProductsController(StoreContext dbContext)
+    public ProductsController(IProductRepository repo)
     {
-        this.dbContext = dbContext;
+        this.repo = repo;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<Product>>> GetAllAsync()
     {
-        return await dbContext.Products.ToListAsync();
+        var products= await repo.GetProductsAsync();
+        return Ok(products);
     }
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetById(int id)
     {
-        return await dbContext.Products.FindAsync(id);
+        var product= await repo.GetProductByIdAsync(id);
+        return Ok(product);
     }
-    [HttpPost("{productName}")]
-    public async Task<IActionResult> CreateProduct(string productName)
-    {
-        var p=new Product{Name=productName};
-        await dbContext.Products.AddAsync(p);
-        return CreatedAtAction(nameof(GetById),new{Id=p},p);
-    }
+   
 }
